@@ -67,6 +67,12 @@ aws configure sso --use-device-code
 aws sso login --profile my-aws-profile-name
 ```
 
+If you always want to use a specific profile without typing --profile each time, set:
+```bash
+setx AWS_PROFILE "admin"
+```
+- Restart terminal after setx has been ran.
+
 #### 4. Install AWS CDK
 ```bash
 npm install -g aws-cdk
@@ -85,39 +91,79 @@ chmod 400 your-key-pair-name.pem
 ```
 
 ## Setup
+
+### Step 1: Configure AWS CLI with SSO
+Follow the AWS CLI prerequisites section above to set up your SSO profile (e.g., `sso-admin`).
+
+### Step 2: Clone and Configure the Project
 1. Clone or navigate to this repository.
 2. Copy `.env.example` to `.env` and update with your values:
    ```bash
    cp .env.example .env
    ```
-3. Install dependencies:
-   ```bash
-   npm install
+   ```PowerShell
+   Copy-item .\.env.example .\.env    
    ```
-4. Bootstrap CDK for your account/region (one-time setup):
-   ```bash
-   cdk bootstrap
-   ```
-5. The stack will automatically load configuration from `.env` file.
 
-### Environment Configuration
+### Step 3: Install Dependencies
+```bash
+npm install
+```
+
+### Step 4: Update Environment Variables
 Edit `.env` with your specific values:
 - `ALLOWED_IP`: Your public IP address (find at https://whatismyipaddress.com/)
 - `EC2_KEY_PAIR`: Name of your EC2 key pair
-- `AMI_REGION`: AWS region you're deploying to (must match CDK region)
+- `AMI_REGION`: `eu-north-1` (or your desired region, must match CDK region)
+
+### Step 5: Build the CDK Project
+Compile TypeScript to JavaScript:
+```bash
+npm run build
+```
+
+### Step 6: Bootstrap CDK Environment (One-Time)
+Set your AWS profile and region, then bootstrap:
+```PowerShell
+$env:AWS_PROFILE='sso-admin'
+$env:AWS_REGION='eu-north-1'
+cdk bootstrap aws://123456789/eu-north-1 --profile sso-admin
+```
+Replace `123456789` with your AWS account ID from your SSO setup.
+
+
+
+Review the changes and confirm with `y` when prompted.
+
+
 
 ## Deployment
-1. Synthesize the CloudFormation template:
-   ```bash
-   cdk synth
-   ```
-2. Deploy the stack:
-   ```bash
-   cdk deploy
-   ```
-3. Note the outputs (Bastion Public IP, Analysis Instance ID, Bucket Name, VPC ID).
+### Step 1. Synthesize and Deploy
+Generate CloudFormation template:
+```bash
+cdk synth
+```
+If you are getting issues with the region, run the command with the created profile
+```bash
+cdk synth --profile sso-admin
+```
 
-Destroy when not in use: `cdk destroy`
+### 2. Deploy the sandbox to your AWS account:
+```bash
+cdk deploy --profile sso-admin
+```
+
+### Step 4. Retrieve Deployment Outputs
+After deployment completes, note the stack outputs:
+- **BastionPublicIP**: Public IP to connect to via SSH
+- **AnalysisInstanceId**: Private analysis instance ID
+- **AnalysisBucketName**: S3 bucket for analysis files
+- **VpcId**: VPC ID for reference
+
+### Step 5. Destroy when not in use: 
+```bash
+cdk destroy
+```
 
 ## Usage
 1. SSH into the bastion host:

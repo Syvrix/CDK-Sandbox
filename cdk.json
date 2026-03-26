@@ -1,0 +1,7 @@
+
+{
+  "app": "bin/cdk-sandbox.js",
+  "context": {
+    "@aws-cdk/core:newStyleStackSynthesis": true
+  }
+}
