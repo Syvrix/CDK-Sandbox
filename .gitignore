@@ -12,6 +12,9 @@ cdk.out
 .env.local
 .env.production
 
+# AWS 
+*.pem
+
 # Logs
 logs
 *.log

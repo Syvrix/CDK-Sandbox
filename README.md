@@ -54,11 +54,17 @@ Enter your:
 - SSO start URL [None]: https://my-sso-portal.awsapps.com/start
 - SSO region [None]: eu-north-1
 - SSO registration scopes [None]: sso:account:access
+- When asked `CLI default output format (json if not specified) [No
+ne]:` just press enter.
 
 **Proof Key for Code Exchange (PKCE)** authorization is used by default for the AWS CLI starting with version 2.22.0 and must be used on devices with a browser. To continue to use Device authorization, append the --use-device-code option.
 
 ```bash
 aws configure sso --use-device-code
+```
+##### Login using the configured profile
+```bash
+aws sso login --profile my-aws-profile-name
 ```
 
 #### 4. Install AWS CDK
@@ -74,7 +80,7 @@ cdk --version
 #### 5. Create EC2 Key Pair
 In AWS Console or via CLI:
 ```bash
-aws ec2 create-key-pair --key-name your-key-pair-name --query 'KeyMaterial' --output text > your-key-pair-name.pem
+aws ec2 create-key-pair --profile sso-admin --region eu-north-1 --key-name your-key-pair-name --query 'KeyMaterial' --output text > your-key-pair-name.pem
 chmod 400 your-key-pair-name.pem
 ```
 
