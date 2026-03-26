@@ -11,6 +11,7 @@
     "cdk": "cdk"
   },
   "devDependencies": {
+    "@types/dotenv": "^6.1.1",
     "@types/jest": "^29.5.12",
     "@types/node": "20.11.17",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -24,9 +25,9 @@
     "typescript": "~5.3.3"
   },
   "dependencies": {
-    "aws-cdk-lib": "2.132.1",
-    "constructs": "^10.0.0",
-    "dotenv": "^16.4.5",
+    "aws-cdk-lib": "^2.244.0",
+    "constructs": "^10.6.0",
+    "dotenv": "^16.6.1",
     "source-map-support": "^0.5.21"
   }
 }
