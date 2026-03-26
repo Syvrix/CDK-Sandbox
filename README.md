@@ -47,13 +47,19 @@ aws --version
 #### 3. Configure AWS CLI
 Configure your AWS credentials:
 ```bash
-aws configure
+aws configure sso
 ```
 Enter your:
-- AWS Access Key ID
-- AWS Secret Access Key
-- Default region (e.g., us-east-1)
-- Default output format (json)
+- SSO session name (Recommended): my-sso
+- SSO start URL [None]: https://my-sso-portal.awsapps.com/start
+- SSO region [None]: us-east-1
+- SSO registration scopes [None]: sso:account:access
+
+**Proof Key for Code Exchange (PKCE)** authorization is used by default for the AWS CLI starting with version 2.22.0 and must be used on devices with a browser. To continue to use Device authorization, append the --use-device-code option.
+
+```bash
+aws configure sso --use-device-code
+```
 
 #### 4. Install AWS CDK
 ```bash
@@ -105,6 +111,8 @@ Edit `.env` with your specific values:
    ```
 3. Note the outputs (Bastion Public IP, Analysis Instance ID, Bucket Name, VPC ID).
 
+Destroy when not in use: `cdk destroy`
+
 ## Usage
 1. SSH into the bastion host:
    ```bash
@@ -147,7 +155,6 @@ cdk destroy
 - Enable additional AWS services (e.g., Lambda for automated scanning).
 - Add CloudWatch alarms for security events.
 
-
 ## Troubleshooting
 
 ### CDK Bootstrap Issues
@@ -178,4 +185,21 @@ Monitor costs in AWS Billing dashboard. The sandbox includes:
 - S3 storage
 - GuardDuty (may incur charges)
 
-Destroy when not in use: `cdk destroy`
+**Projected 2026 Costs** (estimating ~5-10% annual increase):
+- **Bastion EC2 (t3.micro)**: ~$0.0114-$0.0124/hour
+- **Analysis EC2 (t3.medium)**: ~$0.0458-$0.0498/hour
+- **NAT Gateway**: ~$0.0495-$0.0539/hour
+- **GuardDuty**: ~$0.0459-$0.0499/hour
+
+**Total Projected 2026 Cost**: ~**$0.15-$0.17/hour**
+
+**Monthly Cost** (if run 8 hours/day): ~**$36-$40** in 2026
+
+**Cost Optimization Tips:**
+- **Stop instances** when not analyzing: `aws ec2 stop-instances --instance-ids <id>`
+- **[Use spot instances](https://aws.amazon.com/ec2/spot/)** for analysis (modify stack for spot allocation)
+- **Destroy stack** after use: `cdk destroy`
+- **Monitor usage** in AWS Cost Explorer
+- **Set up billing alerts** for unexpected costs
+
+**Note**: AWS pricing typically increases 2-5% annually. The 2026 projections are estimates based on historical trends. Always check current pricing at https://aws.amazon.com/pricing/ and use AWS Cost Calculator for precise estimates in your region.
