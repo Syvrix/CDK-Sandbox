@@ -52,7 +52,7 @@ aws configure sso
 Enter your:
 - SSO session name (Recommended): my-sso
 - SSO start URL [None]: https://my-sso-portal.awsapps.com/start
-- SSO region [None]: us-east-1
+- SSO region [None]: eu-north-1
 - SSO registration scopes [None]: sso:account:access
 
 **Proof Key for Code Exchange (PKCE)** authorization is used by default for the AWS CLI starting with version 2.22.0 and must be used on devices with a browser. To continue to use Device authorization, append the --use-device-code option.
