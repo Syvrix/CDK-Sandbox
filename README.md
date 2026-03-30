@@ -4,7 +4,7 @@ This CDK project creates a secure, isolated AWS environment for malware analysis
 
 ## Security Features
 - **Network Isolation**: Dedicated VPC with public/private subnets
-- **Bastion Host**: Secure access point in public subnet
+- **Secure client connection**: Secure access point using AWS Session manager.
 - **No Public IPs**: Analysis instances in private subnets only
 - **VPC Endpoints**: S3 access without internet exposure
 - **Least Privilege IAM**: Minimal permissions for EC2 role
@@ -13,7 +13,6 @@ This CDK project creates a secure, isolated AWS environment for malware analysis
 - **Access Control**: Restricted security groups, no inbound to analysis instance
 
 ## Architecture
-- **Bastion Host**: Ubuntu instance in public subnet for SSH access
 - **Analysis Instance**: Ubuntu instance in private subnet with analysis tools
 - **S3 Bucket**: Encrypted, versioned bucket with access logging
 - **VPC**: Isolated network with NAT Gateway for controlled outbound access
@@ -23,7 +22,6 @@ This CDK project creates a secure, isolated AWS environment for malware analysis
 - **AWS CLI**: Install from https://aws.amazon.com/cli/
 - **AWS CDK CLI**: Install globally with `npm install -g aws-cdk`
 - **AWS Account**: With appropriate permissions for EC2, VPC, S3, IAM, etc.
-- **EC2 Key Pair**: Created in your AWS account
 
 ### Installing Prerequisites
 
@@ -83,13 +81,6 @@ Verify installation:
 cdk --version
 ```
 
-#### 5. Create EC2 Key Pair
-In AWS Console or via CLI:
-```bash
-aws ec2 create-key-pair --profile sso-admin --region eu-north-1 --key-name your-key-pair-name --query 'KeyMaterial' --output text > your-key-pair-name.pem
-chmod 400 your-key-pair-name.pem
-```
-
 ## Setup
 
 ### Step 1: Configure AWS CLI with SSO
@@ -112,8 +103,6 @@ npm install
 
 ### Step 4: Update Environment Variables
 Edit `.env` with your specific values:
-- `ALLOWED_IP`: Your public IP address (find at https://whatismyipaddress.com/)
-- `EC2_KEY_PAIR`: Name of your EC2 key pair
 - `AMI_REGION`: `eu-north-1` (or your desired region, must match CDK region)
 
 ### Step 5: Build the CDK Project
@@ -131,10 +120,7 @@ cdk bootstrap aws://123456789/eu-north-1 --profile sso-admin
 ```
 Replace `123456789` with your AWS account ID from your SSO setup.
 
-
-
 Review the changes and confirm with `y` when prompted.
-
 
 
 ## Deployment
@@ -155,7 +141,6 @@ cdk deploy --profile sso-admin
 
 ### Step 4. Retrieve Deployment Outputs
 After deployment completes, note the stack outputs:
-- **BastionPublicIP**: Public IP to connect to via SSH
 - **AnalysisInstanceId**: Private analysis instance ID
 - **AnalysisBucketName**: S3 bucket for analysis files
 - **VpcId**: VPC ID for reference
@@ -166,17 +151,9 @@ cdk destroy
 ```
 
 ## Usage
-1. SSH into the bastion host:
-   ```bash
-   ssh -i your-key.pem ubuntu@<bastion-public-ip>
-   ```
-2. From bastion, SSH to analysis instance (use private IP):
-   ```bash
-   ssh ubuntu@<analysis-private-ip>
-   ```
-3. Upload files to S3 bucket or transfer via bastion.
-4. Analyze files in `/home/ubuntu/analysis` directory.
-5. Common tools available:
+1. Upload files to S3 bucket
+2. Analyze files in `/home/ubuntu/analysis` directory.
+3. Common tools available:
    - **ClamAV**: `clamscan <file>` for virus scanning
    - **YARA**: Write rules and scan with `yara <rules> <file>`
    - **Tshark**: Network analysis
@@ -217,7 +194,7 @@ If `cdk bootstrap` fails:
 
 ### Deployment Errors
 - **AMI not found**: Update `AMI_REGION` in `.env` to match your deployment region
-- **Key pair not found**: Ensure the key pair name in `.env` exists in your AWS account
+- **Session Manager access issues**: Ensure the instance role has SSM permissions and the VPC endpoints for SSM are available
 - **IP restriction**: Update `ALLOWED_IP` with your current public IP
 
 ### Permission Issues
