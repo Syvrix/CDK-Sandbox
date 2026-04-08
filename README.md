@@ -13,9 +13,9 @@ This CDK project creates a secure, isolated AWS environment for malware analysis
 - **Access Control**: Restricted security groups, no inbound to analysis instance
 
 ## Architecture
-- **Analysis Instance**: Ubuntu instance in private subnet with analysis tools
+- **Analysis Instance**: Ubuntu instance in private isolated subnet with analysis tools
 - **S3 Bucket**: Encrypted, versioned bucket with access logging
-- **VPC**: Isolated network with NAT Gateway for controlled outbound access
+- **VPC**: Isolated network with private subnets only (no internet gateway or NAT gateway)
 
 ## Prerequisites
 - **Node.js (v18+)**: Download from https://nodejs.org/ (includes npm)
@@ -103,7 +103,9 @@ npm install
 
 ### Step 4: Update Environment Variables
 Edit `.env` with your specific values:
-- `AMI_REGION`: `eu-north-1` (or your desired region, must match CDK region)
+- `CDK_DEFAULT_REGION`: `eu-north-1` (or your desired region)
+- `CDK_DEFAULT_ACCOUNT`: Your AWS account ID
+- `EC2_KEY_PAIR`: Your EC2 key pair name for instance access
 
 ### Step 5: Build the CDK Project
 Compile TypeScript to JavaScript:
@@ -151,16 +153,18 @@ cdk destroy
 ```
 
 ## Usage
-1. Upload files to S3 bucket
-2. Analyze files in `/home/ubuntu/analysis` directory.
-3. Common tools available:
+1. Connect to the analysis instance via AWS Session Manager
+2. Upload files to S3 bucket
+3. Analyze files in `/home/ubuntu/analysis` directory
+4. Common tools available:
    - **ClamAV**: `clamscan <file>` for virus scanning
    - **YARA**: Write rules and scan with `yara <rules> <file>`
    - **Tshark**: Network analysis
    - **Python tools**: `oletools`, `pefile` for file analysis
 
 ## Security Considerations
-- Analysis instance has no direct internet access; updates via bastion if needed.
+- Analysis instance has no internet access (no NAT gateway, no internet gateway).
+- Access via AWS Systems Manager Session Manager only (no SSH/RDP ports open).
 - All traffic logged via CloudTrail and VPC Flow Logs.
 - GuardDuty enabled for threat detection.
 - Files in S3 are encrypted and private.
@@ -195,7 +199,6 @@ If `cdk bootstrap` fails:
 ### Deployment Errors
 - **AMI not found**: Update `AMI_REGION` in `.env` to match your deployment region
 - **Session Manager access issues**: Ensure the instance role has SSM permissions and the VPC endpoints for SSM are available
-- **IP restriction**: Update `ALLOWED_IP` with your current public IP
 
 ### Permission Issues
 The AWS account needs these permissions:
@@ -215,19 +218,18 @@ Monitor costs in AWS Billing dashboard. The sandbox includes:
 - GuardDuty (may incur charges)
 
 **Projected 2026 Costs** (estimating ~5-10% annual increase):
-- **Bastion EC2 (t3.micro)**: ~$0.0114-$0.0124/hour
 - **Analysis EC2 (t3.medium)**: ~$0.0458-$0.0498/hour
-- **NAT Gateway**: ~$0.0495-$0.0539/hour
 - **GuardDuty**: ~$0.0459-$0.0499/hour
+- **S3 Storage**: Variable based on file size
 
-**Total Projected 2026 Cost**: ~**$0.15-$0.17/hour**
+**Total Projected 2026 Cost**: ~**$0.09-$0.10/hour** (excluding S3 storage)
 
-**Monthly Cost** (if run 8 hours/day): ~**$36-$40** in 2026
+**Monthly Cost** (if run 8 hours/day): ~**$21-$24** in 2026
 
 **Cost Optimization Tips:**
-- **Stop instances** when not analyzing: `aws ec2 stop-instances --instance-ids <id>`
-- **[Use spot instances](https://aws.amazon.com/ec2/spot/)** for analysis (modify stack for spot allocation)
-- **Destroy stack** after use: `cdk destroy`
+- **Stop instances** when not analyzing: `aws ec2 stop-instances --instance-ids <id>` (~50% savings)
+- **[Use spot instances](https://aws.amazon.com/ec2/spot/)** for analysis (modify stack for spot allocation - 70% savings)
+- **Destroy stack** after analysis: `cdk destroy` (eliminates recurring costs)
 - **Monitor usage** in AWS Cost Explorer
 - **Set up billing alerts** for unexpected costs
 
